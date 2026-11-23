@@ -1,0 +1,55 @@
+media:
+  input: cms-media
+  output: /your-article-hub/cms-media
+  categories: [image]
+  extensions: [jpg, jpeg, png, webp, gif, avif]
+  rename: safe
+content:
+  - name: articles
+    label: Articles
+    type: collection
+    path: cms-articles
+    format: json
+    filename: "{primary}.json"
+    subfolders: false
+    view:
+      primary: title
+      fields: [title, category, date]
+      sort: [date]
+      default:
+        search: ""
+        sort: date
+        order: desc
+    fields:
+      - name: title
+        label: Title
+        type: string
+        required: true
+      - name: description
+        label: Description
+        type: text
+        required: true
+      - name: category
+        label: Category
+        description: Enter an existing category such as RYDR, or type a new category name.
+        type: string
+        required: true
+      - name: date
+        label: Publication date
+        type: date
+        required: true
+      - name: author
+        label: Author
+        type: string
+      - name: cover
+        label: Cover image
+        type: image
+      - name: coverAlt
+        label: Cover image description
+        type: string
+      - name: body
+        label: Article
+        type: rich-text
+        required: true
+        options:
+          format: markdown
