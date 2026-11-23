@@ -89,12 +89,13 @@ connect.addEventListener('submit',async event => {
   connection.textContent = 'Connecting to GitHub…';
   try {
     const data = await github(
-      'query($owner:String!,$name:String!){viewer{login} repository(owner:$owner,name:$name){id viewerPermission discussionCategories(first:100){nodes{id name}}}}',
+      'query($owner:String!,$name:String!){viewer{login} repository(owner:$owner,name:$name){id discussionCategories(first:100){nodes{id name}}}}',
       {owner,name:repository}
     );
-    if (data.viewer.login.toLowerCase() !== owner || data.repository?.viewerPermission !== 'ADMIN') {
-      throw new Error('Sign in with the repository owner’s GitHub token.');
+    if (data.viewer.login.toLowerCase() !== owner) {
+      throw new Error('This token belongs to '+data.viewer.login+'. Use a token from '+owner+'.');
     }
+    if (!data.repository) throw new Error('This token cannot access '+repository+'.');
     repoId = data.repository.id;
     const options = data.repository.discussionCategories.nodes.map(item => new Option(item.name,item.id));
     category.replaceChildren(new Option('Choose a category',''),...options);
