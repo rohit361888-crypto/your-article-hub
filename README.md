@@ -11,6 +11,10 @@ A GitHub-only community journal. Readers visit GitHub Pages. Contributors sign i
 
 Contributors add a title and place the description in the first paragraph. The GitHub Markdown editor supports images, links, headings and lists. The editor uses GitHub's normal formatting controls, so there is no dedicated article-alignment toolbar or standalone description input.
 
+## Owner's editorial desk
+
+Select **Editorial desk** on the site for the owner’s editor. Create a fine-grained GitHub token scoped to this repository with **Discussions: Read and write**, then enter it in the editor. The credential stays in memory in that tab and is sent only to GitHub. The desk checks the owner's GitHub login and repository admin permission before enabling publication and edits. Draft contents can be saved locally. Use Markdown links and image URLs in the desk, or GitHub’s editor for direct image attachments.
+
 ## Local layout preview
 
 With Node.js 24, run `node build.mjs OWNER/REPOSITORY --preview` from this folder. Open `_site/index.html`. This generates an empty journal for layout preview. Production uses the GitHub Actions token to read discussions.
