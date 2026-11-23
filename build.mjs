@@ -1,4 +1,4 @@
-import {copyFile,mkdir,writeFile} from 'node:fs/promises';
+import {copyFile,mkdir,readFile,writeFile} from 'node:fs/promises';
 
 const repository = process.env.GITHUB_REPOSITORY || process.argv[2];
 if (!/^[\w.-]+\/[\w.-]+$/.test(repository || '')) {
@@ -112,7 +112,11 @@ for (const a of articles) {
     <a class="button quiet" href="${escape(a.url)}">Open on GitHub</a></article>`,'../../',description(a)));
 }
 await copyFile('style.css','_site/style.css');
-await Promise.all(['admin.html','admin.css','admin.js'].map(file => copyFile(file,'_site/'+file)));
+const admin = await readFile('admin.html','utf8');
+const articleCategories = categories.map(({slug,name}) =>
+  '<option value="'+escape(slug)+'">'+escape(name)+'</option>').join('');
+await writeFile('_site/admin.html',admin.replace('<!-- article categories -->',() => articleCategories));
+await Promise.all(['admin.css','admin.js'].map(file => copyFile(file,'_site/'+file)));
 await writeFile('_site/.nojekyll','');
 console.log(`Built ${articles.length} articles and ${categories.length} topics for ${repository}.`);
 

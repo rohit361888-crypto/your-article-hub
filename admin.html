@@ -1,15 +1,11 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'; connect-src https://api.github.com; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'; base-uri 'none'; form-action 'none'">
 <title>Editorial Desk | Your Article Hub</title><link rel="stylesheet" href="./admin.css"><script src="./admin.js" type="module"></script></head>
 <body><header><a class="brand" href="./"><span aria-hidden="true">ah.</span>Your Article Hub</a><a href="./">View journal</a></header>
 <div class="layout"><aside><small>Editorial desk</small><nav aria-label="Editorial navigation">
-<a href="#connection">GitHub connection</a><a href="#editor">Write an article</a><a href="#published">Published articles</a><a id="categories-link">Manage categories</a></nav></aside>
-<main><section id="connection" class="connection"><h2>GitHub connection</h2>
-<form id="connect"><label for="token">Fine-grained access token</label><div class="inline"><input id="token" type="password" required autocomplete="off" spellcheck="false"><button>Connect</button></div></form><button id="disconnect" type="button" hidden>Disconnect</button>
-<p id="connection-status" role="status"></p>
-<details><summary>How to connect</summary><p><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">Create a fine-grained GitHub token</a> for your account. Select only the <strong>your-article-hub</strong> repository and set <strong>Discussions</strong> to <strong>Read and write</strong>. Paste it here. It stays in this tab’s memory until you disconnect or reload.</p></details>
-</section>
+<a href="#editor">Write an article</a><a href="https://github.com/rohit361888-crypto/your-article-hub/discussions">Published articles</a><a href="https://github.com/rohit361888-crypto/your-article-hub/discussions/categories">Manage categories</a></nav></aside>
+<main>
 <section id="editor"><div class="editor-heading"><div><div class="eyebrow">Your Article Hub</div><h1 id="editor-heading">Start a new story.</h1></div><button type="button" class="quiet" id="preview-button" aria-expanded="false">Preview</button></div>
 <form id="article" class="composer">
 <div class="writing"><label class="sr-only" for="title">Article title</label><input id="title" class="title" placeholder="Give your story a title…" required maxlength="256">
@@ -17,10 +13,12 @@
 <div class="body"><div class="toolbar" aria-label="Formatting controls">
 <button type="button" data-format="heading">Heading</button><button type="button" data-format="bold" aria-label="Bold"><b>B</b></button><button type="button" data-format="italic" aria-label="Italic"><i>I</i></button><button type="button" data-format="list">List</button><button type="button" data-format="link">Link</button><button type="button" data-format="image">Image URL</button></div>
 <label for="content" class="sr-only">Article body</label><textarea id="content" rows="15" placeholder="Start with an idea. Write your article here…" required></textarea></div>
-<p class="hint">Use Markdown for formatting. For file attachments, use the <a id="native-editor">GitHub editor</a>.</p>
+<p class="hint">Use Markdown for formatting. You can attach files on the GitHub screen before publishing.</p>
 <div id="preview" class="panel" hidden><h2>Preview</h2><h3 id="preview-title"></h3><p id="preview-description"></p><pre id="preview-body"></pre><p class="hint">GitHub renders Markdown after publishing.</p></div>
 </div>
-<div class="panel publishing"><h2>Publishing</h2><label for="category">Category</label><select id="category" required disabled><option value="">Connect to load categories</option></select>
-<button id="save-draft" type="button" class="quiet">Save draft</button><button id="publish" disabled>Publish article</button><button id="new-story" type="button" class="quiet" hidden>New article</button><p id="publish-status" role="status"></p><a id="result-link" hidden>View on GitHub</a></div></form></section>
-<section id="published"><h2>Published articles</h2><p id="article-status" role="status">Connect to GitHub to load articles.</p><ul id="article-list"></ul><button id="older" type="button" class="quiet" hidden>Load more</button></section>
+<div class="panel publishing"><h2>Publishing</h2><label for="category">Category</label><select id="category" required><option value="">Choose a category</option><!-- article categories --></select>
+<button id="save-draft" type="button" class="quiet">Save draft</button><button>Continue to GitHub</button>
+<p class="hint">Review your draft and click Start discussion on GitHub to publish.</p>
+<p id="publish-status" role="status"></p><button id="copy-body" type="button" class="quiet" hidden>Copy article body</button><a id="continue-link" hidden>Open GitHub editor</a>
+<a id="native-editor" href="https://github.com/rohit361888-crypto/your-article-hub/discussions/new">Open an empty GitHub editor</a></div></form></section>
 </main></div></body></html>

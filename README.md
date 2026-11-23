@@ -13,7 +13,7 @@ Contributors add a title and place the description in the first paragraph. The G
 
 ## Owner's editorial desk
 
-Select **Editorial desk** on the site for the owner’s editor. Create a fine-grained GitHub token scoped to this repository with **Discussions: Read and write**, then enter it in the editor. The credential stays in memory in that tab and is sent only to GitHub. The desk checks the owner's GitHub login and repository admin permission before enabling publication and edits. Draft contents can be saved locally. Use Markdown links and image URLs in the desk, or GitHub’s editor for direct image attachments.
+Select **Editorial desk** to compose an article, choose a category and save a local draft. **Continue to GitHub** opens the prefilled Discussion editor, where you can attach images and select **Start discussion**. Use the normal GitHub account sign-in. Open **Published articles** or **Manage categories** for editing and administration through GitHub.
 
 ## Local layout preview
 
