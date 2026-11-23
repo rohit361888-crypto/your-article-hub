@@ -1,4 +1,4 @@
-import {copyFile,mkdir,readFile,writeFile} from 'node:fs/promises';
+import {copyFile,mkdir,readFile,readdir,writeFile} from 'node:fs/promises';
 
 const repository = process.env.GITHUB_REPOSITORY || process.argv[2];
 if (!/^[\w.-]+\/[\w.-]+$/.test(repository || '')) {
@@ -48,12 +48,69 @@ const [categories,articles] = token && !preview ? await Promise.all([
   readAll('discussions','number title bodyText bodyHTML createdAt updatedAt url author { login } category { slug name }')
 ]) : [[],[]];
 
-articles.sort((a,b) => b.createdAt.localeCompare(a.createdAt));
-categories.sort((a,b) => a.name.localeCompare(b.name));
+const discussionCategories = [...categories];
+const articlePath = article => encodeURIComponent(article.slug ?? String(article.number));
+const slugify = value => value.normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}]+/gu,'-').replace(/^-+|-+$/g,'');
+
+async function entries(folder) {
+  try { return await readdir(folder,{withFileTypes:true}); }
+  catch (error) { if (error.code === 'ENOENT') return []; throw error; }
+}
+
+async function renderMarkdown(markdown) {
+  if (preview) return '<p>'+escape(markdown)+'</p>';
+  const response = await fetch('https://api.github.com/markdown',{
+    method:'POST',
+    headers:{Authorization:'Bearer '+token,'Content-Type':'application/json',Accept:'application/vnd.github+json'},
+    body:JSON.stringify({text:markdown,mode:'gfm',context:repository})
+  });
+  if (!response.ok) throw new Error('GitHub Markdown rendering failed with status '+response.status);
+  return response.text();
+}
+
+function coverUrl(value) {
+  if (typeof value !== 'string' || !value.startsWith('/'+name+'/cms-media/')) return '';
+  const file = value.split('/').at(-1);
+  if (!file || /[\\?#]/.test(file)) return '';
+  return '/'+name+'/cms-media/'+encodeURIComponent(decodeURIComponent(file));
+}
+
+async function addCmsArticles() {
+  for (const file of await entries('cms-articles')) {
+    if (!file.isFile() || !file.name.endsWith('.json')) continue;
+    const post = JSON.parse(await readFile('cms-articles/'+file.name,'utf8'));
+    const categoryName = String(post.category || '').trim();
+    const categorySlug = slugify(categoryName);
+    const created = new Date(post.date);
+    if (!post.title?.trim() || !post.body?.trim() || !post.description?.trim() || !categorySlug || !Number.isFinite(created.getTime())) {
+      throw new Error('Missing title, description, category, date or article body in '+file.name);
+    }
+    let category = categories.find(item => item.slug === categorySlug || item.name.toLowerCase() === categoryName.toLowerCase());
+    if (!category) {
+      category = {name:categoryName,slug:categorySlug};
+      categories.push(category);
+    }
+    articles.push({
+      slug:'cms-'+file.name.slice(0,-5),
+      title:post.title,
+      bodyHTML:await renderMarkdown(post.body),
+      description:post.description,
+      createdAt:created.toISOString(),
+      author:{login:post.author?.trim() || 'Your Article Hub'},
+      cover:coverUrl(post.cover),
+      coverAlt:post.coverAlt,
+      category
+    });
+  }
+}
+
 const escape = value => String(value ?? '').replace(/[&<>"']/g,char => ({
   '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
 })[char]);
-const description = a => (a.bodyText.trim().split(/\n+/).find(Boolean) || '').slice(0,220);
+await addCmsArticles();
+articles.sort((a,b) => b.createdAt.localeCompare(a.createdAt));
+categories.sort((a,b) => a.name.localeCompare(b.name));
+const description = a => a.description || (a.bodyText.trim().split(/\n+/).find(Boolean) || '').slice(0,220);
 const date = value => new Date(value).toLocaleDateString('en-IN',{dateStyle:'medium',timeZone:'Asia/Kolkata'});
 
 function layout(title,content,root='./',summary='A public community journal.') {
@@ -69,7 +126,7 @@ function layout(title,content,root='./',summary='A public community journal.') {
 function cards(items,root='./') {
   if (!items.length) return `<p class="empty">No articles published yet. <a href="${root}write/">Write an article</a>.</p>`;
   return '<div class="grid">'+items.map(a => `<article class="card"><div class="meta">${escape(a.category.name)}</div>
-    <h3><a href="${root}articles/${Number(a.number)}/">${escape(a.title)}</a></h3><p>${escape(description(a))}</p>
+    <h3><a href="${root}articles/${articlePath(a)}/">${escape(a.title)}</a></h3><p>${escape(description(a))}</p>
     <div class="meta">${escape(a.author?.login || 'Community contributor')} · ${date(a.createdAt)}</div></article>`).join('')+'</div>';
 }
 
@@ -106,14 +163,21 @@ for (const category of categories) {
 
 for (const a of articles) {
   // GitHub provides sanitized discussion HTML. The page also blocks scripts, frames and forms.
-  await save('articles/'+Number(a.number),layout(a.title,`<article class="article"><div class="eyebrow">${escape(a.category.name)}</div>
+  await save('articles/'+articlePath(a),layout(a.title,`<article class="article"><div class="eyebrow">${escape(a.category.name)}</div>
     <h1>${escape(a.title)}</h1><div class="meta">${escape(a.author?.login || 'Community contributor')} · ${date(a.createdAt)}</div>
+    ${a.cover ? '<img class="cover" src="'+escape(a.cover)+'" alt="'+escape(a.coverAlt)+'">' : ''}
     <div class="body">${a.bodyHTML}</div>
-    <a class="button quiet" href="${escape(a.url)}">Open on GitHub</a></article>`,'../../',description(a)));
+    ${a.url ? '<a class="button quiet" href="'+escape(a.url)+'">Open on GitHub</a>' : '<a href="../../">Back to articles</a>'}</article>`,'../../',description(a)));
+}
+await mkdir('_site/cms-media',{recursive:true});
+for (const file of await entries('cms-media')) {
+  if (file.isFile() && /\.(jpe?g|png|webp|gif|avif)$/i.test(file.name)) {
+    await copyFile('cms-media/'+file.name,'_site/cms-media/'+file.name);
+  }
 }
 await copyFile('style.css','_site/style.css');
 const admin = await readFile('admin.html','utf8');
-const articleCategories = categories.map(({slug,name}) =>
+const articleCategories = discussionCategories.sort((a,b) => a.name.localeCompare(b.name)).map(({slug,name}) =>
   '<option value="'+escape(slug)+'">'+escape(name)+'</option>').join('');
 await writeFile('_site/admin.html',admin.replace('<!-- article categories -->',() => articleCategories));
 await Promise.all(['admin.css','admin.js'].map(file => copyFile(file,'_site/'+file)));
