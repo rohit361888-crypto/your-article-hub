@@ -63,7 +63,7 @@ function layout(title,content,root='./',summary='A public community journal.') {
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' https:; media-src https:; base-uri 'none'; form-action 'none'">
   <title>${escape(title)} | Your Article Hub</title><link rel="stylesheet" href="${root}style.css"></head>
   <body><header><nav aria-label="Main navigation"><a class="brand" href="${root}"><span class="mark" aria-hidden="true">ah.</span>Your Article Hub</a>
-  <div><a href="${root}#articles">Explore</a><a href="${root}#topics">Topics</a><a class="button" href="${root}write/">Write an article</a></div></nav></header>
+  <div><a href="${root}#articles">Explore</a><a href="${root}#topics">Topics</a><a href="${root}admin.html">Editorial desk</a><a class="button" href="${root}write/">Write an article</a></div></nav></header>
   <main>${content}</main><footer><a href="${github}/discussions">Community on GitHub</a> · <a href="${github}/discussions/categories">Manage categories</a></footer></body></html>`;
 }
 function cards(items,root='./') {
@@ -112,6 +112,7 @@ for (const a of articles) {
     <a class="button quiet" href="${escape(a.url)}">Open on GitHub</a></article>`,'../../',description(a)));
 }
 await copyFile('style.css','_site/style.css');
+await Promise.all(['admin.html','admin.css','admin.js'].map(file => copyFile(file,'_site/'+file)));
 await writeFile('_site/.nojekyll','');
 console.log(`Built ${articles.length} articles and ${categories.length} topics for ${repository}.`);
 
